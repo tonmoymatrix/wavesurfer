@@ -1,0 +1,38 @@
+We want to display bars instead of waves: https://wavesurfer-js.org/docs/options.html
+barGap, barHeight and barWidth options.
+
+Display regions that will tag items inside the audio: https://wavesurfer-js.org/plugins/regions.html.
+As an example, you can think about the items in the Highlight section of the Recording project; each of this items may be a region.
+We don't need to allow users to create new regions:
+Handled by enableDragSelection(options) method.
+
+
+We need a timeline to show the time of the audio: https://wavesurfer-js.org/plugins/timeline.html
+
+We need to be able to zoom in and out of the audio: https://wavesurfer-js.org/examples/ - zoom section.
+Please note that when combining regions and timeline with zoom, these regions and timeline should also adjust to the new zoom ratio.
+Timeline should stretch or shrink to fit the zoom ratio.
+Regions should be wider or narrower to fit the zoom ratio.
+If zoom plus any other combination of features are not compatible:
+Display 2 waveforms:
+A "global" view of the waveform without any zoom.
+A zoomed view of the waveform with an horizontal scroll:
+
+................DONE........................
+
+
+Minimap plugin: Test https://wavesurfer-js.org/plugins/minimap.html with a long recording
+I'm not sure, but I think it may be used also in this plugin: http://wavesurfer-js.org/example/annotation/
+Does the "minimap" hold the full waveform and the top waveform is scrollable?
+
+
+We want to display a table with the items of the audio. There is a plugin that works with The Language Archive software, ELAN, that fits exactly our needs:
+Global view: https://wavesurfer-js.org/example/elan/
+Scrollable view: https://wavesurfer-js.org/example/elan/?scroll
+Both seem to work exactly the same, only changing the behavior of the plugin.
+It seems that this plugin loads an XML file on the background. Please learn the structure of this XML file and generate a test one that works the at least 4 or 5 items.
+Definition of this XML file: https://www.mpi.nl/tools/elan/EAFv2.6.xsd
+As an additional comment regarding this section, there is also this plugin: http://wavesurfer-js.org/example/annotation/, that triggers events
+We are not sure if this could be done with this plugin, but it would be great if you could research about the possibility to hide only the top or the lower part of the waveform to simulate that only one of the speakers is talking at a certain time: agent or customer.
+I found this comment regarding this point: https://github.com/katspaugh/wavesurfer.js/issues/514
+I'm not sure if we can modify the wave values directly, but maybe making all positive or all negative values between two given times may fake this functionality.

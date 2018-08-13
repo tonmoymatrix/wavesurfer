@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Wavesuffer</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link href="bootstrap.min.css" rel="stylesheet" />
+  
+    <style type="text/css">
+    .main-container {
+        width: 100%;
+        background: #222;
+        clear: both;
+        min-height: 260px;
+        /* padding: 5px; */
+        /* box-shadow: 0px 0px 9px #000000; */
+        margin-bottom: 10px;
+        position: relative;
+    }
+    #itemListContainer table {
+        width: 50%;
+        margin: 0 auto;
+    }
+    #itemListContainer tr td {
+        padding: 5px;
+        
+        
+    }
+    #itemListContainer tr {
+        background: #CCC;
+    }
+    #itemListContainer tr.active {
+        background: #1ca2a9;
+        color: #FFF;
+    }
+    .wave-analysis-box {
+        display: none;
+    }
+    .wave-panel {
+        padding: 5px;
+    }
+    .loader-container {
+        display: none;
+        background: rgba(255,255,255,0.9);
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 99;
+    }
+    .loader-container .loader{
+        background-image: url('loader.gif');
+        background-repeat: no-repeat;
+        display: inline-block;
+        width: 36px;
+        height: 38px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+    }
+    div#audioProgessBar {
+        background: #2f2f2f;
+        height: 8px;
+        border: none;
+    }
+    .ui-progressbar .ui-progressbar-value {
+        background: #c7c7c7;
+        border: none;
+    }
+    .ui-progressbar .ui-progressbar-overlay {
+        background: #2f2f2f;
+    }
+    .control-panel-btns {
+        text-align: center;
+        font-size: 20px;
+        margin-bottom: 5px;
+    }
+    .control-panel{
+        color: #FFF;
+        /* display: none; */
+        position: absolute;
+        bottom: 2px;
+        width: 99%;
+    }
+    .control-panel-btns .btn {
+        background: url('control-icons.png') no-repeat;
+        display: inline-block;
+        background-color: #868686;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+    }
+    .control-panel-btns .btn.play {
+        background-position: -47px 7px;
+    }
+    .control-panel-btns .btn.pause {
+        background-position: -22px 7px;
+    }
+    .control-panel-btns .btn.backward {
+        background-position: -1px -21px;
+    }
+    .control-panel-btns .btn.forward {
+        background-position: -41px -21px;
+    }
+    </style>
+  <script src="jquery-3.3.1.min.js"></script>
+  <script src="wavesurfer.js/2.0.6/wavesurfer.min.js"></script>
+
+  <!-- wavesurfer.js regions -->
+  <script src="wavesurfer.js/2.0.6/plugin/wavesurfer.regions.min.js"></script>
+
+  <!-- wavesurfer.js timeline -->
+  <script src="wavesurfer.js/2.0.6/plugin/wavesurfer.timeline.min.js"></script>
+  <!-- wavesurfer.js minimap -->
+  <script src="wavesurfer.js/2.0.6/plugin/wavesurfer.minimap.min.js"></script>
+  <script src="jquery-ui.min.js"></script>
+  
+  
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center">Wavesuffer</h2>
+        <div class="row">
+            
+            <div class="col">
+                <div class="form-group">
+                    <label>Browse Audio</label>
+                    <input type="file" class="form-control" id="browseFile" />
+                </div>
+                <div>
+                    <input type="button" class="btn btn-danger" value="Reset" id="reloadBtn"/>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label>Zoom</label>
+                    <div id="zoomSlider"></div>
+                </div>
+            </div>
+        </div>
+        <div class="wave-analysis-box">
+            <h4 class="text-center">Analysis</h4>
+            <div class="main-container">
+                <div class="loader-container">
+                    <span class="loader"></span>
+                </div>
+                <div class="wave-panel">
+                    <div id="waveform"></div>
+                    <div class="control-panel" >
+                        <div class="control-panel-btns">
+                            <span class="backwardBtn btn backward"></span>
+                            <span class="playPauseBtn btn play"></span>
+                            <span class="forwardBtn btn forward"></span>
+                        </div>
+                        <div id="audioProgessBar"></div>
+                        <div id="wave-timeline"></div>
+                        <div id="wave-min"></div>
+                    </div>
+                </div>
+                
+            </div>
+            <button id="addregionShowBtn">Add Region</button>
+            
+            <div id="addregionFrmBox" style="display: none">
+                <input type="text" name="start" placeholder="Start" />
+                <input type="text" name="end" placeholder="End" />
+                <input type="text" name="color" placeholder="Color" />
+                <button id="addRegionBtn">Add</button>
+            </div>
+            <div id="itemListContainer"></div>
+        </div>
+    </div>
+    <script>
+        const itemList = [
+            {
+                start : 0,
+                end : 3,
+                title : "1st Item"
+            },
+            {
+                start : 3.1,
+                end : 7,
+                title : "2nd Item"
+            },
+            {
+                start : 7.1,
+                end : 9,
+                title : "3rd Item"
+            },
+            {
+                start : 9.1,
+                end : 10,
+                title : "4th Item"
+            },
+        ];
+        var progessbar ;
+        var wavesurfer = WaveSurfer.create({
+            container: '#waveform',
+            waveColor: '#A8DBA8',
+            progressColor: '#3B8686',
+            cursorColor :'#FFF',
+            /* FOR MEDIA CONTROL */
+            //backend: 'MediaElement',
+            //mediaControls : true,
+            /* FOR MEDIA CONTROL */
+
+            barWidth:1,
+            barGap:5,
+            responsive : true,
+            enableDragSelection : false,
+            plugins : [
+            WaveSurfer.regions.create({
+                regions: [],
+            }),
+                WaveSurfer.timeline.create({
+                    container: '#wave-timeline',
+                    primaryFontColor: '#fff',
+                    primaryColor: '#fff',
+                    secondaryColor: '#fff',
+                    secondaryFontColor: '#fff'
+                }),
+                WaveSurfer.minimap.create({
+                    height: 30,
+                    container : "#wave-min",
+                    waveColor: '#A8DBA8',
+                    progressColor: '#3B8686',
+                    cursorColor :'#FFF',
+                }),
+            ]
+            
+        });
+        var minimap ;
+        wavesurfer.on('ready', function () {
+            $(".loader-container").hide();
+            $(".control-panel").show();
+        })
+        wavesurfer.on('audioprocess', function () {
+            let time = parseFloat(wavesurfer.getCurrentTime().toFixed(1));
+            let duration = wavesurfer.getDuration();
+            let progessbarValue = ((time*100)/duration);
+            progessbar.progressbar('value',progessbarValue);
+
+            
+            let trIndex = itemList.findIndex((item)=>{
+                return time >= item.start && time <= item.end;
+            })
+            $(itemListContainer).find("table").find("tr").removeClass('active');
+            if (trIndex != -1) {
+                $(itemListContainer).find("table").find("tr:eq("+trIndex+")").addClass('active');
+            }
+            
+        });
+        
+        
+        
+        var regions = [];
+       
+        $(()=>{
+            progessbar = $("#audioProgessBar");
+            progessbar.progressbar({
+                value : 0,
+            })
+            $(".playPauseBtn").click(()=>{
+                let btn = $(".playPauseBtn");
+                if (btn.hasClass('play')) {
+                    btn.addClass('pause');
+                    btn.removeClass('play');
+                } else {
+                    btn.addClass('play');
+                    btn.removeClass('pause');
+                }
+                wavesurfer.playPause();
+            })
+            $(".forwardBtn").click(()=>{
+                if (wavesurfer.isPlaying() == true){
+                    let currentTime = wavesurfer.getCurrentTime();
+                    wavesurfer.play(currentTime+10);
+                }
+            })
+            $(".backwardBtn").click(()=>{
+                if (wavesurfer.isPlaying() == true){
+                    let currentTime = wavesurfer.getCurrentTime();
+                    wavesurfer.play(currentTime-10);
+                }
+            })
+            $( "#zoomSlider" ).slider({
+                value:1,
+                min: 1,
+                max: 100,
+                step: 1,
+                slide: function( event, ui ) {
+                    wavesurfer.zoom( Number(ui.value) );
+                }
+            });
+
+            const itemListContainer = $("#itemListContainer");
+            itemListContainer.empty();
+            const table = $("<table/>").attr({
+                'cellpadding' :0,
+                'cellspacing' : 0,
+            }).appendTo(itemListContainer);
+            let tr ;
+            for(let item of itemList) {
+                tr = $("<tr/>").appendTo(table);
+                $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
+                $("<td/>").text(item.title).appendTo(tr);
+            }
+            
+            $("#browseFile").change((event)=>{
+                $(".wave-analysis-box").show();
+                $(".loader-container").show();
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    
+                    wavesurfer.load(this.result);
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            })
+            $("#reloadBtn").click(()=>{
+                window.location.reload();
+            })
+            $("#addregionShowBtn").click(()=>{
+                $("#addregionFrmBox").toggle();
+            })
+            $("#addRegionBtn").click(()=>{
+                if ($("input[name=start]").val()!='' && $("input[name=end]").val()!='' && $("input[name=color]").val()!=''){
+                    let region = {
+                    start : $("input[name=start]").val(),
+                    end : $("input[name=end]").val(),
+                    color : $("input[name=color]").val(),
+                    drag: false,
+                    resize: false,
+                    } 
+                    regions.push(region);
+                    wavesurfer.addRegion(region);
+                    
+                    $("input[name=start]").val("")
+                    $("input[name=end]").val("")
+                    $("input[name=color]").val("")
+                }
+                
+            })
+            $("#playBtn").click(()=>{
+                wavesurfer.playPause();
+            })
+            
+        })
+    </script>
+</body>
+</html>
