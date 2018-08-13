@@ -252,37 +252,50 @@
             }
             
         });
-        
+        wavesurfer.on('finish', function () {
+            togglePlayBtn();
+        });
         
         
         var regions = [];
-       
+        const togglePlayBtn = ()=>{
+            let btn = $(".playPauseBtn");
+            if (btn.hasClass('play')) {
+                btn.addClass('pause');
+                btn.removeClass('play');
+            } else {
+                btn.addClass('play');
+                btn.removeClass('pause');
+            }
+        }
         $(()=>{
             progessbar = $("#audioProgessBar");
             progessbar.progressbar({
                 value : 0,
             })
             $(".playPauseBtn").click(()=>{
-                let btn = $(".playPauseBtn");
-                if (btn.hasClass('play')) {
-                    btn.addClass('pause');
-                    btn.removeClass('play');
-                } else {
-                    btn.addClass('play');
-                    btn.removeClass('pause');
-                }
+                togglePlayBtn();
                 wavesurfer.playPause();
             })
             $(".forwardBtn").click(()=>{
-                if (wavesurfer.isPlaying() == true){
-                    let currentTime = wavesurfer.getCurrentTime();
-                    wavesurfer.play(currentTime+10);
+                let currentTime = wavesurfer.getCurrentTime();
+                currentTime += 10;
+                if (wavesurfer.isPlaying() == true ){
+                    
+                    if (currentTime <= wavesurfer.getDuration()) {
+                        wavesurfer.play(currentTime);
+                    }
+                    
                 }
             })
             $(".backwardBtn").click(()=>{
-                if (wavesurfer.isPlaying() == true){
-                    let currentTime = wavesurfer.getCurrentTime();
-                    wavesurfer.play(currentTime-10);
+                let currentTime = wavesurfer.getCurrentTime();
+                currentTime -=10;
+                if (wavesurfer.isPlaying() == true ){
+                    if (currentTime < 0) {
+                        currentTime = 0;
+                    }
+                    wavesurfer.play(currentTime);
                 }
             })
             $( "#zoomSlider" ).slider({
