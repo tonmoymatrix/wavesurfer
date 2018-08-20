@@ -169,14 +169,14 @@
                 </div>
                 
             </div>
-            <button id="addregionShowBtn">Add Region</button>
+            <!-- <button id="addregionShowBtn">Add Region</button>
             
             <div id="addregionFrmBox" style="display: none">
                 <input type="text" name="start" placeholder="Start" />
                 <input type="text" name="end" placeholder="End" />
                 <input type="text" name="color" placeholder="Color" />
                 <button id="addRegionBtn">Add</button>
-            </div>
+            </div> -->
             <div id="itemListContainer"></div>
         </div>
     </div>
@@ -265,7 +265,7 @@
                 tr = $("<tr/>").appendTo(table);
                 $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
                 $("<td/>").text(item.title).appendTo(tr);
-                let tdAction = $("<td/>").appendTo(tr);
+                let tdAction = $("<td/>").addClass('actionTd').appendTo(tr);
                 if (wavesurfer.getDuration() > item.start) {
                     $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
                         if ($(event.target).hasClass('play')) {
@@ -306,13 +306,26 @@
                 return time >= item.start && time <= item.end;
             })
             $(itemListContainer).find("table").find("tr").removeClass('active');
+            $(itemListContainer).find("table")
+                .find('.actionTd')
+                .find('button')
+                .removeClass('pause')
+                .addClass('play');
             if (trIndex != -1) {
                 $(itemListContainer).find("table").find("tr:eq("+trIndex+")").addClass('active');
+                
+
+                $(itemListContainer).find("table").find("tr:eq("+trIndex+")")
+                .find('.actionTd')
+                .find('button')
+                .addClass('pause')
+                .removeClass('play');
             }
             
         });
         wavesurfer.on('finish', function () {
             togglePlayBtn();
+            $('.playBtnRegion').removeClass('pause').addClass('play');
         });
         
         
@@ -370,14 +383,19 @@
             
             
             $("#browseFile").change((event)=>{
-                $(".wave-analysis-box").show();
-                $(".loader-container").show();
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    
-                    wavesurfer.load(this.result);
-                };
-                reader.readAsDataURL(event.target.files[0]);
+                let file = event.target.files[0];
+                if (file.type == 'audio/wav' || file.type == 'audio/mp3'){
+                    $(".wave-analysis-box").show();
+                    $(".loader-container").show();
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        
+                        wavesurfer.load(this.result);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please provide only .mp3 or .wav file');
+                }
             })
             $("#reloadBtn").click(()=>{
                 window.location.reload();
