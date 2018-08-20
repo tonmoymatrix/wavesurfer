@@ -261,6 +261,9 @@
             
         });
         var minimap ;
+        wavesurfer.on('region-click', function (ele) {
+            $("#itemListContainer table tr:eq("+ele.data.index+") td.actionTd button").trigger('click');
+        });
         wavesurfer.on('ready', function () {
             $(".loader-container").hide();
             $(".control-panel").show();
@@ -273,6 +276,8 @@
             let tr ;
           
             for(let item of itemList) {
+                let index = itemList.indexOf(item);
+                
                 tr = $("<tr/>").appendTo(table);
                 $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
                 $("<td/>").text(item.title).appendTo(tr);
@@ -296,8 +301,10 @@
                         color : item.color,
                         drag: false,
                         resize: false,
-                        "data": {},
-                        "attributes": { "label": item.title, "highlight": true }
+                        data: {
+                            index : index
+                        },
+                        attributes: { label: item.title, highlight: true }
                     } 
                     
                     //regions.push(region);
