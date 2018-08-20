@@ -290,11 +290,11 @@
                             $('.playBtnRegion').removeClass('pause').addClass('play');
                             $(event.target).addClass('pause').removeClass('play');
                             wavesurfer.play(item.start);
-                        } else {
+                        } /* else {
                             $(".playPauseBtn").addClass('play').removeClass('pause');
                             $('.playBtnRegion').removeClass('pause').addClass('play');
                             wavesurfer.pause();
-                        }
+                        } */
                     })
                     let region = {
                         start : item.start,
