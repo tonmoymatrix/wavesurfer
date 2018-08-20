@@ -92,10 +92,10 @@
         height: 30px;
         border-radius: 50%;
     }
-    .control-panel-btns .btn.play {
+    .control-panel-btns .btn.play, .playBtnRegion.play {
         background-position: -47px 7px;
     }
-    .control-panel-btns .btn.pause {
+    .control-panel-btns .btn.pause, .playBtnRegion.pause {
         background-position: -22px 7px;
     }
     .control-panel-btns .btn.backward {
@@ -103,6 +103,14 @@
     }
     .control-panel-btns .btn.forward {
         background-position: -41px -21px;
+    }
+    .playBtnRegion {
+        background: url('control-icons.png') no-repeat;
+        background-color: #868686;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
     }
     </style>
   <script src="jquery-3.3.1.min.js"></script>
@@ -176,23 +184,33 @@
         const itemList = [
             {
                 start : 0,
-                end : 3,
-                title : "1st Item"
+                end : 50,
+                title : "1st Item",
+                color : 'rgba(255, 0, 0,0.5)'
             },
             {
-                start : 3.1,
-                end : 7,
-                title : "2nd Item"
+                start : 70,
+                end : 80,
+                title : "2nd Item",
+                color : 'rgba(0, 101, 255,0.5)'
             },
             {
-                start : 7.1,
-                end : 9,
-                title : "3rd Item"
+                start : 90,
+                end : 100,
+                title : "3rd Item",
+                color : 'rgba(7, 183, 45,0.5)'
             },
             {
-                start : 9.1,
-                end : 10,
-                title : "4th Item"
+                start : 120,
+                end : 150,
+                title : "4th Item",
+                color : 'rgba(191, 191, 7,0.5)'
+            },
+            {
+                start : 180,
+                end : 200,
+                title : "5th Item",
+                color : 'rgba(0, 157, 255,0.5)'
             },
         ];
         var progessbar ;
@@ -235,6 +253,47 @@
         wavesurfer.on('ready', function () {
             $(".loader-container").hide();
             $(".control-panel").show();
+            const itemListContainer = $("#itemListContainer");
+            itemListContainer.empty();
+            const table = $("<table/>").attr({
+                'cellpadding' :0,
+                'cellspacing' : 0,
+            }).appendTo(itemListContainer);
+            let tr ;
+          
+            for(let item of itemList) {
+                tr = $("<tr/>").appendTo(table);
+                $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
+                $("<td/>").text(item.title).appendTo(tr);
+                let tdAction = $("<td/>").appendTo(tr);
+                if (wavesurfer.getDuration() > item.start) {
+                    $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
+                        if ($(event.target).hasClass('play')) {
+                            $(".playPauseBtn").addClass('pause').removeClass('play');
+                            $('.playBtnRegion').removeClass('pause').addClass('play');
+                            $(event.target).addClass('pause').removeClass('play');
+                            wavesurfer.play(item.start);
+                        } else {
+                            $(".playPauseBtn").addClass('play').removeClass('pause');
+                            $('.playBtnRegion').removeClass('pause').addClass('play');
+                            wavesurfer.pause();
+                        }
+                    })
+                    let region = {
+                        start : item.start,
+                        end : item.end,
+                        color : item.color,
+                        drag: false,
+                        resize: false,
+                        attributes: {
+                            label: item.title
+                        }
+                    } 
+                    
+                    //regions.push(region);
+                    wavesurfer.addRegion(region);
+                }
+            }
         })
         wavesurfer.on('audioprocess', function () {
             let time = parseFloat(wavesurfer.getCurrentTime().toFixed(1));
@@ -308,18 +367,7 @@
                 }
             });
 
-            const itemListContainer = $("#itemListContainer");
-            itemListContainer.empty();
-            const table = $("<table/>").attr({
-                'cellpadding' :0,
-                'cellspacing' : 0,
-            }).appendTo(itemListContainer);
-            let tr ;
-            for(let item of itemList) {
-                tr = $("<tr/>").appendTo(table);
-                $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
-                $("<td/>").text(item.title).appendTo(tr);
-            }
+            
             
             $("#browseFile").change((event)=>{
                 $(".wave-analysis-box").show();
