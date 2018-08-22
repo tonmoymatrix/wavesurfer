@@ -99,27 +99,27 @@
         background: url('control-icons.png') no-repeat;
         display: inline-block;
         background-color: #868686;
-        width: 30px;
-        height: 30px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
     }
     .control-panel-btns .btn.play, .playBtnRegion.play {
-        background-position: -47px 7px;
+        background-position: -45px 10px;
     }
     .control-panel-btns .btn.pause, .playBtnRegion.pause {
-        background-position: -22px 7px;
+        background-position: -19px 10px;
     }
-    .control-panel-btns .btn.backward {
-        background-position: -1px -21px;
+    .control-panel-btns .btn.backward , .playBtnRegion.backward{
+        background-position: 1px -18px;
     }
     .control-panel-btns .btn.forward {
-        background-position: -41px -21px;
+        background-position: -39px -18px;
     }
     .playBtnRegion {
         background: url('control-icons.png') no-repeat;
         background-color: #868686;
-        width: 30px;
-        height: 30px;
+        width: 35px;
+        height: 35px;
         border-radius: 50%;
         border: none;
     }
@@ -239,7 +239,7 @@
             barGap:5,
             responsive : true,
             enableDragSelection : false,
-            interact : false,
+            //interact : false,
             plugins : [
             WaveSurfer.regions.create({
                 regions: [],
@@ -262,8 +262,21 @@
             
         });
         var minimap ;
+        wavesurfer.on('pause', (ele)=>{
+            togglePlayBtn('pause');
+        })
+        wavesurfer.on('play', (ele)=>{
+            togglePlayBtn('play');
+        });
+        
         wavesurfer.on('region-click', function (ele) {
-            $("#itemListContainer table tr:eq("+ele.data.index+") td.actionTd button").trigger('click');
+            const regionPlayBtn = $("#itemListContainer table tr:eq("+ele.data.index+") td.actionTd button");
+            if (regionPlayBtn.hasClass('play')) {
+                $(".playPauseBtn").addClass('pause').removeClass('play');
+                $('.playBtnRegion').removeClass('pause').addClass('play');
+                regionPlayBtn.addClass('pause').removeClass('play');
+                //wavesurfer.play(item.start);
+            }
         });
         wavesurfer.on('ready', function () {
             $(".loader-container").hide();
@@ -284,17 +297,17 @@
                 $("<td/>").text(item.title).appendTo(tr);
                 let tdAction = $("<td/>").addClass('actionTd').appendTo(tr);
                 if (wavesurfer.getDuration() > item.start) {
+                    $("<button/>").addClass('playBtnRegion backward').appendTo(tdAction).bind('click', (event)=>{
+                        wavesurfer.play(item.start);
+                    })
                     $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
                         if ($(event.target).hasClass('play')) {
-                            $(".playPauseBtn").addClass('pause').removeClass('play');
-                            $('.playBtnRegion').removeClass('pause').addClass('play');
+                            
                             $(event.target).addClass('pause').removeClass('play');
                             wavesurfer.play(item.start);
-                        } /* else {
-                            $(".playPauseBtn").addClass('play').removeClass('pause');
-                            $('.playBtnRegion').removeClass('pause').addClass('play');
+                        } else {
                             wavesurfer.pause();
-                        } */
+                        }
                     })
                     let region = {
                         start : item.start,
@@ -342,21 +355,29 @@
             
         });
         wavesurfer.on('finish', function () {
-            togglePlayBtn();
-            $('.playBtnRegion').removeClass('pause').addClass('play');
+            togglePlayBtn('pause');
+            // togglePlayBtn();
+            // $('.playBtnRegion').removeClass('pause').addClass('play');
         });
         
         
         var regions = [];
-        const togglePlayBtn = ()=>{
-            let btn = $(".playPauseBtn");
+        const togglePlayBtn = (type)=>{
+            if (type == 'pause') {
+                $(".playPauseBtn").addClass('play').removeClass('pause');
+                $('.playBtnRegion').addClass('play').removeClass('pause');
+            } else if (type == 'play') {
+                $(".playPauseBtn").addClass('pause').removeClass('play');
+                $('.playBtnRegion').removeClass('pause').addClass('play');
+            }
+            /* let btn = $(".playPauseBtn");
             if (btn.hasClass('play')) {
                 btn.addClass('pause');
                 btn.removeClass('play');
             } else {
                 btn.addClass('play');
                 btn.removeClass('pause');
-            }
+            } */
         }
         $(()=>{
             progessbar = $("#audioProgessBar");
@@ -364,7 +385,7 @@
                 value : 0,
             })
             $(".playPauseBtn").click(()=>{
-                togglePlayBtn();
+                //togglePlayBtn();
                 wavesurfer.playPause();
             })
             $(".forwardBtn").click(()=>{
@@ -379,14 +400,14 @@
                 }
             })
             $(".backwardBtn").click(()=>{
-                let currentTime = wavesurfer.getCurrentTime();
-                currentTime -=10;
-                if (wavesurfer.isPlaying() == true ){
+                
+                wavesurfer.play(0);
+                /* if (wavesurfer.isPlaying() == true ){
                     if (currentTime < 0) {
                         currentTime = 0;
                     }
                     wavesurfer.play(currentTime);
-                }
+                } */
             })
             $( "#zoomSlider" ).slider({
                 value:1,
