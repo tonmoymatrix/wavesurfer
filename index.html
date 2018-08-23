@@ -21,7 +21,20 @@
     border: 1px solid rgb(86, 180, 239);
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
     }
-    .main-container {
+    .hidden {
+        display: none;
+    }
+    span.active-span {
+        position: absolute;
+        right: 3px;
+        top: 5px;
+        font-size: 12px;
+        background: #ce3c0f;
+        padding: 3px;
+        border-radius: 4px;
+        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05) inset, 0px 0px 8px rgba(82, 168, 236, 0.6);
+    }
+    .wave-container {
         width: 100%;
         background: #222;
         clear: both;
@@ -71,7 +84,7 @@
         left: 50%;
         transform: translate(-50%,-50%);
     }
-    div#audioProgessBar {
+    div.audioProgessBar {
         background: #2f2f2f;
         height: 8px;
         border: none;
@@ -143,15 +156,7 @@
         <h2 class="text-center">Wavesuffer</h2>
         <div class="row">
             
-            <div class="col">
-                <div class="form-group">
-                    <label>Browse Audio</label>
-                    <input type="file" class="form-control" id="browseFile" />
-                </div>
-                <div>
-                    <input type="button" class="btn btn-danger" value="Reset" id="reloadBtn"/>
-                </div>
-            </div>
+            
             <div class="col">
                 <div class="form-group">
                     <label>Zoom</label>
@@ -161,37 +166,78 @@
         </div>
         <div class="wave-analysis-box">
             <h4 class="text-center">Analysis</h4>
-            <div class="main-container">
+            <div class="wave-container">
                 <div class="loader-container">
                     <span class="loader"></span>
                 </div>
                 <div class="wave-panel">
-                    <div id="waveform"></div>
+                    <div class="waveform"></div>
                     <div class="control-panel" >
                         <div class="control-panel-btns">
                             <span class="backwardBtn btn backward"></span>
                             <span class="playPauseBtn btn play"></span>
                             <span class="forwardBtn btn forward"></span>
+                            <span class="active-span hidden">Active</span>
                         </div>
-                        <div id="audioProgessBar"></div>
-                        <div id="wave-timeline"></div>
-                        <div id="wave-min"></div>
+                        <div class="audioProgessBar"></div>
+                        <div class="wave-timeline"></div>
+                        <div class="wave-min"></div>
                     </div>
                 </div>
                 
             </div>
-            <!-- <button id="addregionShowBtn">Add Region</button>
-            
-            <div id="addregionFrmBox" style="display: none">
-                <input type="text" name="start" placeholder="Start" />
-                <input type="text" name="end" placeholder="End" />
-                <input type="text" name="color" placeholder="Color" />
-                <button id="addRegionBtn">Add</button>
-            </div> -->
+
+            <div class="wave-container">
+                    <div class="loader-container">
+                        <span class="loader"></span>
+                    </div>
+                    <div class="wave-panel">
+                        <div class="waveform"></div>
+                        <div class="control-panel" >
+                            <div class="control-panel-btns">
+                                <span class="backwardBtn btn backward"></span>
+                                <span class="playPauseBtn btn play"></span>
+                                <span class="forwardBtn btn forward"></span>
+                                <span class="active-span hidden">Active</span>
+                            </div>
+                            <div class="audioProgessBar"></div>
+                            <div class="wave-timeline"></div>
+                            <div class="wave-min"></div>
+                        </div>
+                    </div>
+                    
+            </div>
+
+            <div class="wave-container">
+                    <div class="loader-container">
+                        <span class="loader"></span>
+                    </div>
+                    <div class="wave-panel">
+                        <div class="waveform"></div>
+                        <div class="control-panel" >
+                            <div class="control-panel-btns">
+                                <span class="backwardBtn btn backward"></span>
+                                <span class="playPauseBtn btn play"></span>
+                                <span class="forwardBtn btn forward"></span>
+                                <span class="active-span hidden">Active</span>
+                            </div>
+                            <div class="audioProgessBar"></div>
+                            <div class="wave-timeline"></div>
+                            <div class="wave-min"></div>
+                        </div>
+                    </div>
+                    
+            </div>
+
             <div id="itemListContainer"></div>
         </div>
     </div>
     <script>
+        const audioList = [
+            'audio1.mp3',
+            'audio2.mp3',
+            'audio3.mp3',
+        ]
         const itemList = [
             {
                 start : 0,
@@ -225,8 +271,12 @@
             },
         ];
         var progessbar ;
-        var wavesurfer = WaveSurfer.create({
-            container: '#waveform',
+        var activeWaveSuffer = 0;
+        const regionPlugin = WaveSurfer.regions.create({
+                regions: [],
+            });
+        const waveSurferOptions = {
+            container: '',
             waveColor: '#A8DBA8',
             progressColor: '#3B8686',
             cursorColor :'#FFF',
@@ -240,153 +290,150 @@
             responsive : true,
             enableDragSelection : false,
             //interact : false,
-            plugins : [
-            WaveSurfer.regions.create({
-                regions: [],
-            }),
-                WaveSurfer.timeline.create({
-                    container: '#wave-timeline',
+            plugins : []
+            
+        };
+        var wavesurferList = [];
+        var progessbarList = [];
+        var wavesurfer ;
+        const waveContainer = ".wave-container";
+        let listCreatePromise = [];
+        $(waveContainer).each((index, element)=>{
+            listCreatePromise.push(new Promise((resolve, reject)=>{
+                $(element).find('.wave-timeline').addClass('wave-timeline-content-'+index);
+                $(element).find('.wave-min').addClass('wave-min-content-'+index);
+                let option = waveSurferOptions;
+                option['container'] = element;
+                option['plugins'] = [];
+                option['plugins'].push(regionPlugin);
+                
+                option['plugins'].push(WaveSurfer.timeline.create({
+                    container: '.wave-timeline-content-'+index,
                     primaryFontColor: '#fff',
                     primaryColor: '#fff',
                     secondaryColor: '#fff',
                     secondaryFontColor: '#fff'
-                }),
-                WaveSurfer.minimap.create({
+                }));
+                
+                option['plugins'].push(WaveSurfer.minimap.create({
                     height: 30,
-                    container : "#wave-min",
+                    container : ".wave-min-content-"+index,
                     waveColor: '#A8DBA8',
                     progressColor: '#3B8686',
                     cursorColor :'#FFF',
-                }),
-            ]
+                }));
+                let wSurfer = WaveSurfer.create(option);
+                
+                let progessbar = $(element).find(".audioProgessBar");
+                progessbar.progressbar({
+                    value : 0,
+                })
+                progessbarList.push(progessbar);
+                
+                resolve(wSurfer)
+            }));
             
-        });
-        var minimap ;
-        wavesurfer.on('pause', (ele)=>{
-            togglePlayBtn('pause');
-        })
-        wavesurfer.on('play', (ele)=>{
-            togglePlayBtn('play');
         });
         
-        wavesurfer.on('region-click', function (ele) {
-            const regionPlayBtn = $("#itemListContainer table tr:eq("+ele.data.index+") td.actionTd button");
-            if (regionPlayBtn.hasClass('play')) {
-                $(".playPauseBtn").addClass('pause').removeClass('play');
-                $('.playBtnRegion').removeClass('pause').addClass('play');
-                regionPlayBtn.addClass('pause').removeClass('play');
-                //wavesurfer.play(item.start);
-            }
-        });
-        wavesurfer.on('ready', function () {
-            $(".loader-container").hide();
-            $(".control-panel").show();
-            const itemListContainer = $("#itemListContainer");
-            itemListContainer.empty();
-            const table = $("<table/>").attr({
-                'cellpadding' :0,
-                'cellspacing' : 0,
-            }).appendTo(itemListContainer);
-            let tr ;
-          
-            for(let item of itemList) {
-                let index = itemList.indexOf(item);
-                
-                tr = $("<tr/>").appendTo(table);
-                $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
-                $("<td/>").text(item.title).appendTo(tr);
-                let tdAction = $("<td/>").addClass('actionTd').appendTo(tr);
-                if (wavesurfer.getDuration() > item.start) {
-                    $("<button/>").addClass('playBtnRegion backward').appendTo(tdAction).bind('click', (event)=>{
-                        wavesurfer.play(item.start);
-                    })
-                    $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
-                        if ($(event.target).hasClass('play')) {
-                            
-                            $(event.target).addClass('pause').removeClass('play');
-                            wavesurfer.play(item.start);
-                        } else {
-                            wavesurfer.pause();
-                        }
-                    })
-                    let region = {
-                        start : item.start,
-                        end : item.end,
-                        color : item.color,
-                        drag: false,
-                        resize: false,
-                        data: {
-                            index : index
-                        },
-                        attributes: { label: item.title, highlight: true }
-                    } 
-                    
-                    //regions.push(region);
-                    wavesurfer.addRegion(region);
-                }
-            }
-        })
-        wavesurfer.on('audioprocess', function () {
-            let time = parseFloat(wavesurfer.getCurrentTime().toFixed(1));
-            let duration = wavesurfer.getDuration();
-            let progessbarValue = ((time*100)/duration);
-            progessbar.progressbar('value',progessbarValue);
-
-            
-            let trIndex = itemList.findIndex((item)=>{
-                return time >= item.start && time <= item.end;
-            })
-            $(itemListContainer).find("table").find("tr").removeClass('active');
-            $(itemListContainer).find("table")
-                .find('.actionTd')
-                .find('button')
-                .removeClass('pause')
-                .addClass('play');
-            if (trIndex != -1) {
-                $(itemListContainer).find("table").find("tr:eq("+trIndex+")").addClass('active');
-                
-
-                $(itemListContainer).find("table").find("tr:eq("+trIndex+")")
-                .find('.actionTd')
-                .find('button')
-                .addClass('pause')
-                .removeClass('play');
-            }
-            
-        });
-        wavesurfer.on('finish', function () {
-            togglePlayBtn('pause');
-            // togglePlayBtn();
-            // $('.playBtnRegion').removeClass('pause').addClass('play');
-        });
+       
         
         
         var regions = [];
-        const togglePlayBtn = (type)=>{
+        const togglePlayBtn = (type, index)=>{
             if (type == 'pause') {
-                $(".playPauseBtn").addClass('play').removeClass('pause');
+                $(waveContainer+':eq('+index+')').find(".playPauseBtn").addClass('play').removeClass('pause');
                 $('.playBtnRegion').addClass('play').removeClass('pause');
             } else if (type == 'play') {
-                $(".playPauseBtn").addClass('pause').removeClass('play');
+                $(waveContainer+':eq('+index+')').find(".playPauseBtn").addClass('pause').removeClass('play');
                 $('.playBtnRegion').removeClass('pause').addClass('play');
             }
-            /* let btn = $(".playPauseBtn");
-            if (btn.hasClass('play')) {
-                btn.addClass('pause');
-                btn.removeClass('play');
-            } else {
-                btn.addClass('play');
-                btn.removeClass('pause');
-            } */
         }
         $(()=>{
-            progessbar = $("#audioProgessBar");
-            progessbar.progressbar({
-                value : 0,
+            $(".active-span").addClass('hidden');
+            $(waveContainer+":eq("+activeWaveSuffer+") .active-span").removeClass('hidden');
+            waveItemRender();
+            Promise.all(listCreatePromise).then((list)=>{
+                    wavesurferList = list;
+                    $(".wave-analysis-box").show();
+                    $(".loader-container").show();
+                    for(let index in wavesurferList) {
+                        let wave = wavesurferList[index];
+                        wave.load('audios/'+audioList[index]);
+                        wave.on('ready', function () {
+                                const waveBody = $(waveContainer+':eq('+index+')');
+                                waveBody.find(".loader-container").hide();
+                                waveBody.find(".control-panel").show();
+
+                                for(let item of itemList) {
+                                    if (wave.getDuration() > item.start) {
+                                        let region = {
+                                            start : item.start,
+                                            end : item.end,
+                                            color : item.color,
+                                            drag: false,
+                                            resize: false,
+                                            data: {
+                                                index : index
+                                            },
+                                            attributes: { label: item.title, highlight: true }
+                                        }
+                                        wave.addRegion(region);
+                                    }
+                                }
+                                
+                            })
+                            wave.on('pause', (ele)=>{
+                                let waveIndex = $(waveContainer).index($(wave.container));
+                                togglePlayBtn('pause',waveIndex);
+                            })
+                            wave.on('play', (ele)=>{
+                                let waveIndex = $(waveContainer).index($(wave.container));
+                                togglePlayBtn('play', waveIndex);
+                            });
+                            wave.on('audioprocess', function () {
+                                let time = parseFloat(wave.getCurrentTime().toFixed(1));
+                                let duration = wave.getDuration();
+                                let progessbarValue = ((time*100)/duration);
+                                progessbarList[index].progressbar('value',progessbarValue);
+
+                                
+                                /* let trIndex = itemList.findIndex((item)=>{
+                                    return time >= item.start && time <= item.end;
+                                })
+                                $(itemListContainer).find("table").find("tr").removeClass('active');
+                                $(itemListContainer).find("table")
+                                    .find('.actionTd')
+                                    .find('button')
+                                    .removeClass('pause')
+                                    .addClass('play');
+                                if (trIndex != -1) {
+                                    $(itemListContainer).find("table").find("tr:eq("+trIndex+")").addClass('active');
+                                    
+
+                                    $(itemListContainer).find("table").find("tr:eq("+trIndex+")")
+                                    .find('.actionTd')
+                                    .find('button')
+                                    .addClass('pause')
+                                    .removeClass('play');
+                                } */
+                                
+                            });
+                    }
             })
-            $(".playPauseBtn").click(()=>{
-                //togglePlayBtn();
-                wavesurfer.playPause();
+            $(".playPauseBtn").click((event)=>{
+                let waveIndex = activeWaveSuffer = $(waveContainer).index($(event.target).parents(waveContainer));
+                for(let index in wavesurferList) {
+                    if(index == waveIndex) {
+                        wavesurfer = wavesurferList[waveIndex];
+                        wavesurfer.playPause();
+                    } else {
+                        if (wavesurfer) {
+                            wavesurferList[index].pause();
+                        }
+                    }
+                }
+                $(".active-span").addClass('hidden');
+                $(waveContainer+":eq("+activeWaveSuffer+") .active-span").removeClass('hidden');
             })
             $(".forwardBtn").click(()=>{
                 let currentTime = wavesurfer.getCurrentTime();
@@ -400,14 +447,7 @@
                 }
             })
             $(".backwardBtn").click(()=>{
-                
                 wavesurfer.play(0);
-                /* if (wavesurfer.isPlaying() == true ){
-                    if (currentTime < 0) {
-                        currentTime = 0;
-                    }
-                    wavesurfer.play(currentTime);
-                } */
             })
             $( "#zoomSlider" ).slider({
                 value:1,
@@ -415,56 +455,51 @@
                 max: 100,
                 step: 1,
                 slide: function( event, ui ) {
-                    wavesurfer.zoom( Number(ui.value) );
+                    wavesurferList[activeWaveSuffer].zoom( Number(ui.value) );
                 }
             });
 
             
             
-            $("#browseFile").change((event)=>{
-                let file = event.target.files[0];
-                if (file.type == 'audio/wav' || file.type == 'audio/mp3'){
-                    $(".wave-analysis-box").show();
-                    $(".loader-container").show();
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        
-                        wavesurfer.load(this.result);
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('Please provide only .mp3 or .wav file');
-                }
-            })
-            $("#reloadBtn").click(()=>{
-                window.location.reload();
-            })
-            $("#addregionShowBtn").click(()=>{
-                $("#addregionFrmBox").toggle();
-            })
-            $("#addRegionBtn").click(()=>{
-                if ($("input[name=start]").val()!='' && $("input[name=end]").val()!='' && $("input[name=color]").val()!=''){
-                    let region = {
-                    start : $("input[name=start]").val(),
-                    end : $("input[name=end]").val(),
-                    color : $("input[name=color]").val(),
-                    drag: false,
-                    resize: false,
-                    } 
-                    regions.push(region);
-                    wavesurfer.addRegion(region);
-                    
-                    $("input[name=start]").val("")
-                    $("input[name=end]").val("")
-                    $("input[name=color]").val("")
-                }
-                
-            })
-            $("#playBtn").click(()=>{
-                wavesurfer.playPause();
-            })
+            
             
         })
+
+        const waveItemRender = ()=>{
+            const itemListContainer = $("#itemListContainer");
+            itemListContainer.empty();
+            const table = $("<table/>").attr({
+                'cellpadding' :0,
+                'cellspacing' : 0,
+            }).appendTo(itemListContainer);
+            let tr ;
+
+            for(let item of itemList) {
+                let index = itemList.indexOf(item);
+                
+                tr = $("<tr/>").appendTo(table);
+                $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
+                $("<td/>").text(item.title).appendTo(tr);
+                let tdAction = $("<td/>").addClass('actionTd').appendTo(tr);
+                /* if (wave.getDuration() > item.start) {
+                    $("<button/>").addClass('playBtnRegion backward').appendTo(tdAction).bind('click', (event)=>{
+                        wavesurfer.play(item.start);
+                    })
+                    $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
+                        if ($(event.target).hasClass('play')) {
+                            
+                            $(event.target).addClass('pause').removeClass('play');
+                            wavesurfer.play(item.start);
+                        } else {
+                            wavesurfer.pause();
+                        }
+                    })
+                    
+                } */
+                
+                
+            }
+        }
     </script>
 </body>
 </html>
