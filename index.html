@@ -269,7 +269,7 @@
                                 progessbarList[index].progressbar('value',progessbarValue);
 
                                 
-                                /* let trIndex = itemList.findIndex((item)=>{
+                                let trIndex = itemList.findIndex((item)=>{
                                     return time >= item.start && time <= item.end;
                                 })
                                 $(itemListContainer).find("table").find("tr").removeClass('active');
@@ -287,7 +287,7 @@
                                     .find('button')
                                     .addClass('pause')
                                     .removeClass('play');
-                                } */
+                                }
                                 
                             });
                     }
@@ -353,21 +353,18 @@
                 $("<td/>").text(item.start+' - '+item.end).appendTo(tr);
                 $("<td/>").text(item.title).appendTo(tr);
                 let tdAction = $("<td/>").addClass('actionTd').appendTo(tr);
-                /* if (wave.getDuration() > item.start) {
-                    $("<button/>").addClass('playBtnRegion backward').appendTo(tdAction).bind('click', (event)=>{
-                        wavesurfer.play(item.start);
-                    })
-                    $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
-                        if ($(event.target).hasClass('play')) {
-                            
-                            $(event.target).addClass('pause').removeClass('play');
-                            wavesurfer.play(item.start);
-                        } else {
-                            wavesurfer.pause();
-                        }
-                    })
-                    
-                } */
+                $("<button/>").addClass('playBtnRegion backward').appendTo(tdAction).bind('click', (event)=>{
+                    wavesurferList[activeWaveSuffer].play(item.start);
+                })
+                $("<button/>").addClass('playBtnRegion play').appendTo(tdAction).bind('click', (event)=>{
+                    if ($(event.target).hasClass('play')) {
+                        
+                        $(event.target).addClass('pause').removeClass('play');
+                        wavesurferList[activeWaveSuffer].play(item.start);
+                    } else {
+                        wavesurferList[activeWaveSuffer].pause();
+                    }
+                })
                 
                 
             }
