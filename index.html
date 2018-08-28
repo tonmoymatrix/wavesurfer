@@ -173,7 +173,7 @@
         $(waveContainer).each((index, element)=>{
             listCreatePromise.push(new Promise((resolve, reject)=>{
                 $(element).find('.wave-timeline').addClass('wave-timeline-content-'+index);
-                $(element).find('.wave-min').addClass('wave-min-content-'+index);
+               // $(element).find('.wave-min').addClass('wave-min-content-'+index);
                 let option = waveSurferOptions;
                 option['container'] = element;
                 option['plugins'] = [];
@@ -187,13 +187,13 @@
                     secondaryFontColor: '#fff'
                 }));
                 
-                option['plugins'].push(WaveSurfer.minimap.create({
+                /* option['plugins'].push(WaveSurfer.minimap.create({
                     height: 30,
                     container : ".wave-min-content-"+index,
                     waveColor: '#A8DBA8',
                     progressColor: '#3B8686',
                     cursorColor :'#FFF',
-                }));
+                })); */
                 let wSurfer = WaveSurfer.create(option);
                 
                 let progessbar = $(element).find(".audioProgessBar");
