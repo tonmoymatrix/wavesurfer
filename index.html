@@ -170,31 +170,31 @@
                 start : 0,
                 end : 50,
                 title : "1st Item",
-                color : 'rgba(255, 0, 0,0.5)'
+                color : '#F50F19'
             },
             {
                 start : 70,
                 end : 80,
                 title : "2nd Item",
-                color : 'rgba(0, 101, 255,0.5)'
+                color : '#265BFF'
             },
             {
                 start : 90,
                 end : 100,
                 title : "3rd Item",
-                color : 'rgba(7, 183, 45,0.5)'
+                color : '#38B72E'
             },
             {
                 start : 120,
                 end : 150,
                 title : "4th Item",
-                color : 'rgba(191, 191, 7,0.5)'
+                color : '#BDBF0D'
             },
             {
                 start : 180,
                 end : 200,
                 title : "5th Item",
-                color : 'rgba(0, 157, 255,0.5)'
+                color : '#3296FF'
             },
         ];
         const waveItemRender = ()=>{
@@ -208,7 +208,11 @@
                 
                 li = $("<li/>").appendTo(ulItem);
                 let iconDiv = $("<div/>").addClass('item-icon').appendTo(li);
-                $("<span/>").addClass('icon').appendTo(iconDiv)
+                $("<span/>")
+                .css({
+                    background : convertHexToRgbaColor(item.color)
+                })
+                .addClass('icon').appendTo(iconDiv)
 
                 let textDiv = $("<div/>").addClass('item-text').appendTo(li);
                 $("<span/>").addClass('item-title').text(item.title).appendTo(textDiv);
@@ -243,6 +247,18 @@
                 $('.playPauseBtnRegion').addClass('play').removeClass('pause');
             }
         }
+        const convertHexToRgbaColor = (hex)=>{
+            var c;
+            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+                c= hex.substring(1).split('');
+                if(c.length== 3){
+                    c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c= '0x'+c.join('');
+                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',0.5)';
+            }
+            throw new Error('Bad Hex');
+        }
         const waveSurferOptions = {
             container: '.waveform',
             waveColor: '#283065',
@@ -250,7 +266,7 @@
             cursorColor :'#784B6D',
             // barWidth:1,
             // barGap:5,
-            responsive : true,
+            //responsive : true,
             enableDragSelection : false,
             height : 200,
             plugins : [
@@ -274,9 +290,17 @@
             ]
             
         };
+        const changeRegionColors =()=>{
+            $("region").each((index, element)=>{
+                $(element).css({
+                    background : convertHexToRgbaColor($(element).attr('data-region-color'))
+                })
+            })
+            return true;
+        }
         $(()=>{
 
-            wave = WaveSurfer.create(waveSurferOptions);
+            
             const progressbar = $(".audioProgessBar").progressbar({
                 value : 0,
             })
@@ -289,8 +313,14 @@
             }
             $(".card-audio-select").change(()=>{
                 $(".loader-container").show();
+                if (wave) {
+                    wave.destroy();
+                }
+                wave = WaveSurfer.create(waveSurferOptions);
                 wave.load('audios/'+$(".card-audio-select").val());
                 wave.on('ready', function () {
+                    new Promise((resolve, reject)=>{
+                        console.log('sss');
                         const waveBody = $('.wave-container');
                         waveBody.find(".loader-container").hide();
                         waveBody.find(".control-panel").show();
@@ -306,13 +336,26 @@
                                     // data: {
                                     //     index : index
                                     // },
-                                    attributes: { label: item.title, highlight: true }
+                                    attributes: {color: item.color, label: item.title, highlight: true }
                                 }
-                                wave.addRegion(region);
+                                let newRegion = wave.addRegion(region);
+                                
                             }
                         }
-                        
+                        resolve();
+                    }).then(()=>{
+                        $("region").each((index, element)=>{
+                            
+                            $("<span/>")
+                            .text( $(element).attr('data-region-label'))
+                            .css({
+                                'background' : $(element).attr('data-region-color'),
+                            })
+                            .appendTo($(element));
+                        })
+                        changeRegionColors();
                     })
+                })
                 wave.on('pause', (ele)=>{
                     togglePlayBtn('pause');
                 })
@@ -375,8 +418,22 @@
                 step: 1,
                 slide: function( event, ui ) {
                     wave.zoom( Number(ui.value) );
+                    changeRegionColors();
                 }
             });
+            $(window).resize(function() {
+                if (wave){
+                    new Promise((resolve, reject)=>{
+                        wave.empty();
+                        wave.drawBuffer();
+                        resolve();
+                    }).then(()=>{
+                        changeRegionColors();
+                    })
+                    
+                }
+               // $(".card-audio-select").trigger('change');
+            })
             waveItemRender();
         })
    </script>

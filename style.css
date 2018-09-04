@@ -20,9 +20,10 @@ div.audioProgessBar {
     color: #33376f;
     font-size: 25px;
 }
-
-region.wavesurfer-region:before {
-    content: attr(data-region-label);
+region.wavesurfer-region {
+    z-index: 99;
+}
+region.wavesurfer-region span {
     color: #FFF;
     font-size: 12px;
     text-align: center;
@@ -144,8 +145,18 @@ span.active-span {
     display: inline-flex;
     height: 100%;
     width: 50px;
-    border-right: 1px solid #CCC;
+    vertical-align: top;
+    padding-top: 17px;
 }
+.item-container .item-list-ul li .item-icon span {
+    background: rgb(245, 15, 25);
+    display: inline;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin:  0 auto;
+}
+
 .item-container .item-list-ul li.active {
     color: #FFF;
     font-weight: bold;
