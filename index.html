@@ -34,9 +34,12 @@
                             <div class="card">
                                 <div class="card-header">
                                     <div class="row">
-                                        <div class="col-md-9 card-menu">
+                                        <div class="col-md-3 card-menu">
                                             <select class="card-audio-select">
                                             </select>
+                                        </div>
+                                        <div class="col-md-6 card-time text-center">
+                                            <span id="current-time">00 : 00</span>
                                         </div>
                                         <div class="col-md-3 card-zoom">
                                             <span>Zoom</span>
@@ -298,6 +301,30 @@
             })
             return true;
         }
+        const msToHMS = ( seconds) =>{
+            
+            let returnStr = '';
+            if (seconds > 3600) {
+            let h = parseInt((seconds/3600).toString());
+            if (h < 10) {
+                returnStr += "0";
+            } 
+            returnStr +=h+" : ";
+            seconds = seconds%3600;
+            }
+            let m = parseInt((seconds/60).toString());;
+            if (m < 10) {
+            returnStr += "0";
+            }
+            returnStr += m+" : ";
+
+            let s  = parseInt((seconds%60).toString());
+            if (s < 10) {
+            returnStr += "0";
+            }
+            returnStr += s;
+            return returnStr;
+        }
         $(()=>{
 
             
@@ -363,7 +390,9 @@
                     togglePlayBtn('play');
                 });
                 wave.on('audioprocess', function () {
+                    
                     let time = parseFloat(wave.getCurrentTime().toFixed(1));
+                    $("#current-time").text(msToHMS(time));
                     let duration = wave.getDuration();
                     let progessbarValue = ((time*100)/duration);
                     progressbar.progressbar('value',progessbarValue);
