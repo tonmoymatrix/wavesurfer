@@ -30,7 +30,7 @@
                 <h2 class="wave-title">Audios Waveform</h2>
 
                 <div class="row wave-analysis-container">
-                    <div class="col-md-10 audio-wave-container">
+                    <div class="col-md-9 audio-wave-container">
                             <div class="card">
                                 <div class="card-header">
                                     <div class="row">
@@ -74,7 +74,7 @@
                                 </div>
                             </div>
                     </div>
-                    <div class="col-md-2 item-container">
+                    <div class="col-md-3 item-container">
                         <div class="item-heading">Items</div>
                         <div id="itemListContainer"></div>
                     </div>
@@ -142,7 +142,7 @@
 
                 let textDiv = $("<div/>").addClass('item-text').appendTo(li);
                 $("<span/>").addClass('item-title').text(item.title).appendTo(textDiv);
-                $("<span/>").addClass('item-time').text('Playtime : '+ item.start+' - '+item.end).appendTo(textDiv);
+                $("<span/>").addClass('item-time').text('Playtime : '+msToHMS(item.start)+' - '+msToHMS(item.end)).appendTo(textDiv);
                 let actionSpan = $("<span/>").addClass('item-action-span').appendTo(textDiv);
 
                 let regionBackwardBtn = $("<button/>").addClass('btnRegion backward').appendTo(actionSpan).bind('click', (event)=>{
