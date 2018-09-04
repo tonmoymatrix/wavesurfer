@@ -270,7 +270,6 @@
                 wave.load('audios/'+$(".card-audio-select").val());
                 wave.on('ready', function () {
                     new Promise((resolve, reject)=>{
-                        console.log('sss');
                         const waveBody = $('.wave-container');
                         waveBody.find(".loader-container").hide();
                         waveBody.find(".control-panel").show();
